@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1019758088456",
+    "project_id": "dermatia-93b5b",
+    "storage_bucket": "dermatia-93b5b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1019758088456:android:f31891959f8f8259b9dcbd",
+        "android_client_info": {
+          "package_name": "com.example.dermatia"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBS8DoClQ1wbJmpWrTMlKTQmkYTz9C3iw4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
