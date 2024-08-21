@@ -20,27 +20,7 @@
         <activity
             android:name=".Resultado"
             android:exported="false" />
-        <activity
-            android:name=".Sarpullido"
-            android:exported="false" />
-        <activity
-            android:name=".Rosacea"
-            android:exported="false" />
-        <activity
-            android:name=".PielSana"
-            android:exported="false" />
-        <activity
-            android:name=".Picaduras"
-            android:exported="false" />
-        <activity
-            android:name=".Dermatitis"
-            android:exported="false" />
-        <activity
-            android:name=".caspa"
-            android:exported="false" />
-        <activity
-            android:name=".acne"
-            android:exported="false" />
+
         <activity
             android:name=".Servicio"
             android:exported="false" />
