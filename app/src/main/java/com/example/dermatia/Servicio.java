@@ -4,14 +4,20 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
+import android.text.Layout;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +48,7 @@ public class Servicio extends AppCompatActivity {
     TextView tvResultado;
     ImageView ivFoto;
     Bitmap bitmap;
+    TableLayout tablaResultados;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +84,8 @@ public class Servicio extends AppCompatActivity {
         btnConsultar = findViewById(R.id.btnConsultar);
         tvResultado = findViewById(R.id.tvResultado);
         ivFoto = findViewById(R.id.ivFoto);
+        tablaResultados = findViewById(R.id.tablaResultados);
+        btnVerRecomendaciones = findViewById(R.id.btnVerRecomendaciones);
 
 
         //funcionamiento boton Seleccionar imagen (entrar en la galeria)
@@ -103,43 +112,163 @@ public class Servicio extends AppCompatActivity {
         btnConsultar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    Model model = Model.newInstance(Servicio.this);
+                if(imagenVacia(ivFoto)){
+                    Toast.makeText(Servicio.this, "Por favor tome o seleccione una foto", Toast.LENGTH_SHORT).show();
+                }else{
+                    try {
+                        Model model = Model.newInstance(Servicio.this);
 
-                    // Creates inputs for reference.
-                    TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.UINT8);
-                    bitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, true);
-                    inputFeature0.loadBuffer(TensorImage.fromBitmap(bitmap).getBuffer());
+                        // Creates inputs for reference.
+                        TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.UINT8);
+                        bitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, true);
+                        inputFeature0.loadBuffer(TensorImage.fromBitmap(bitmap).getBuffer());
 
-                    // Runs model inference and gets result.
-                    Model.Outputs outputs = model.process(inputFeature0);
-                    TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
-                    //mostrar resultado en el campo de texto
-                    tvResultado.setText(labels[obtenerMaximo(outputFeature0.getFloatArray())] + " ");
+                        // Runs model inference and gets result.
+                        Model.Outputs outputs = model.process(inputFeature0);
+                        TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+                        //mostrar resultado en el campo de texto
+                        tvResultado.setText(labels[obtenerMaximo(outputFeature0.getFloatArray())] + " ");
 
-                    float[] probabilidades = outputFeature0.getFloatArray();
-                    int indice = obtenerMaximo(outputFeature0.getFloatArray());
-                    double probabilidad = (probabilidades[indice]/255)*100;
-                    String probabilidadString = String.format("%.2f", probabilidad);
+                        //array de probabilidades
+                        float[] probabilidades = outputFeature0.getFloatArray();
 
-                    Toast.makeText(Servicio.this,"Probabilidad: "+probabilidadString+"%", Toast.LENGTH_SHORT).show();
+                        //Arrays para almecenar los mayores
+                        float[] maxValores = {Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY};
+                        int[] maxIndices = {-1,-1,-1};
+                        String[] palabras = {"acne", "caspa", "dermatitis", "picaduras", "piel sana","rosacea", "sarpullido"};
+
+                        //Encontrar los valores mas grandes y sus indices
+                        for(int i = 0; i < probabilidades.length; i++){
+                            float valorActual = probabilidades[i];
+
+                            if(valorActual > maxValores[0]){
+                                //valores hacia abajo
+                                maxValores[2] = maxValores[1];
+                                maxIndices[2] = maxIndices[1];
+                                maxValores[1] = maxValores[0];
+                                maxIndices[1] = maxIndices[0];
+
+                                //actualizar valores mas grandes
+                                maxValores[0] = valorActual;
+                                maxIndices[0] = i;
+                            } else if (valorActual > maxValores[1]){
+                                maxValores[2] = maxValores[1];
+                                maxIndices[2] = maxIndices[1];
+
+                                maxValores[1] = valorActual;
+                                maxIndices[1] = i;
+                            } else if (valorActual > maxValores[2]) {
+                                maxValores[2] = valorActual;
+                                maxIndices[2] = i;
+
+                            }
+                        }
+
+                        //Agregar encabezados
+                        TableRow headerRow = new TableRow(Servicio.this);
+                        headerRow.setGravity(Gravity.CENTER);
+
+                        TextView headerIndex = new TextView(Servicio.this);
+                        headerIndex.setText("Categoría");
+                        headerIndex.setPadding(8,8,8,8);
+                        headerIndex.setTextColor(Color.WHITE);
+                        headerIndex.setGravity(Gravity.CENTER);
+
+
+                        headerRow.addView(headerIndex);
+
+                        TextView headerValue = new TextView(Servicio.this);
+                        headerValue.setText("Probabilidad");
+                        headerValue.setPadding(8, 8, 8, 8);
+                        headerValue.setTextColor(Color.WHITE);
+                        headerValue.setGravity(Gravity.CENTER);
+                        headerRow.addView(headerValue);
+
+
+                        tablaResultados.addView(headerRow);
+
+                        //Agregar valores a la tabla
+                        for(int i =0; i<3; i++){
+                            TableRow row = new TableRow(Servicio.this);
+                            row.setGravity(Gravity.CENTER);
+                            TextView indicesTextView = new TextView(Servicio.this);
+                            indicesTextView.setText(palabras[maxIndices[i]]);
+                            indicesTextView.setPadding(8,8,8,8);
+                            indicesTextView.setTextColor(Color.WHITE);
+                            indicesTextView.setTextSize(18);
+                            indicesTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                            indicesTextView.setGravity(Gravity.CENTER);
+                            row.addView(indicesTextView);
+
+                            TextView valorTextView = new TextView(Servicio.this);
+                            //AQUI
+                            valorTextView.setText(volverPorcentaje(maxValores[i])+" %");
+                            valorTextView.setPadding(8,8,8,8);
+                            valorTextView.setTextColor(Color.WHITE);
+                            valorTextView.setTextSize(18);
+                            valorTextView.setGravity(Gravity.CENTER);
+                            valorTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                            row.addView(valorTextView);
 
 
 
+                            tablaResultados.addView(row);
+                        }
 
-                    // Releases model resources if no longer used.
-                    model.close();
-                } catch (IOException e) {
-                    Toast.makeText(Servicio.this, "Error " + e, Toast.LENGTH_SHORT).show();
+                        //boton visible
+                        btnVerRecomendaciones.setVisibility(View.VISIBLE);
+
+
+                        /**
+                         float[] probabilidades = outputFeature0.getFloatArray();
+                         int indice = obtenerMaximo(outputFeature0.getFloatArray());
+                         double probabilidad = (probabilidades[indice]/255)*100;
+                         String probabilidadString = String.format("%.2f", probabilidad);
+
+                         Toast.makeText(Servicio.this,"Probabilidad: "+probabilidadString+"%", Toast.LENGTH_SHORT).show();
+                         **/
+
+
+
+                        // Releases model resources if no longer used.
+                        model.close();
+                    } catch (IOException e) {
+                        Toast.makeText(Servicio.this, "Error " + e, Toast.LENGTH_SHORT).show();
+                    }
+
                 }
 
+
+            }
+        });
+
+        btnVerRecomendaciones.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String resultadoTexto = tvResultado.getText().toString();
+                Intent intent = new Intent(Servicio.this, Resultado.class);
+                intent.putExtra("RESULTADO_TEXTO", resultadoTexto);
+                startActivity(intent);
+                finish();
             }
         });
 
 
     }
 
+    String volverPorcentaje(float numero){
+        float operacion =  (numero/255)*100;
+        String resultado = String.format("%.2f", operacion);
+        return resultado;
 
+    }
+
+    //Verificar si ImageView esta vacio
+    boolean imagenVacia(ImageView imageView){
+        Drawable drawable = imageView.getDrawable();
+        return drawable == null;
+
+    }
 
     int obtenerMaximo(float[] floatArray) {
         int max = 0;
@@ -183,11 +312,17 @@ public class Servicio extends AppCompatActivity {
                 }
             }
         } else if (requestCode == 12) {
-            Bundle extras = data.getExtras();
-            bitmap = (Bitmap) extras.get("data");
-            ivFoto.setImageBitmap(bitmap);
-            //bitmap = (Bitmap) data.getExtras().get("data");
-            //ivFoto.setImageBitmap(bitmap);
+            if(resultCode == RESULT_OK){
+                Bundle extras = data.getExtras();
+                bitmap = (Bitmap) extras.get("data");
+                ivFoto.setImageBitmap(bitmap);
+                //bitmap = (Bitmap) data.getExtras().get("data");
+                //ivFoto.setImageBitmap(bitmap);
+            }else if(resultCode == RESULT_CANCELED){
+                Toast.makeText(Servicio.this, "Captura de imagen cancelada", Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(Servicio.this,"Ocurrio un error al capturar la imagen", Toast.LENGTH_SHORT).show();
+            }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }

@@ -36,7 +36,7 @@
         android:layout_marginLeft="20dp"
         android:layout_marginTop="50dp"
         android:layout_marginRight="20dp"
-        android:text="Para comenzar pulsa el botón 'Siguiente' y tomate una foto lo más clara posible enfocando la zona de afeccion en tu piel y toca el botón 'consultar'"
+        android:text="Para comenzar pulsa el botón 'Siguiente' y selecciona una foto de tu galería o tómatela lo más clara posible enfocando la zona de afeccion en tu piel y pulsa el botón 'Consultar'"
         android:textAlignment="center"
         android:textSize="25dp"
         android:textColor="@color/black"/>
@@ -56,7 +56,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="110dp"
         android:layout_marginTop="30dp"
-        android:text="Cerrar Sesion" />
+        android:text="Cerrar Sesión" />
 
 
 </LinearLayout>
