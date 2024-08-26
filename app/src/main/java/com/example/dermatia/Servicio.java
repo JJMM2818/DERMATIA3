@@ -163,6 +163,8 @@ public class Servicio extends AppCompatActivity {
 
                             }
                         }
+                        //Reiniciar la tabla
+                        tablaResultados.removeAllViews();
 
                         //Agregar encabezados
                         TableRow headerRow = new TableRow(Servicio.this);
